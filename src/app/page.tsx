@@ -1,103 +1,144 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+type Msg = { role: "user" | "assistant"; content: string };
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [msgs, setMsgs] = useState<Msg[]>(() => {
+    if (typeof window === "undefined") return [];
+    const saved = localStorage.getItem("amiga-history");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    localStorage.setItem("amiga-history", JSON.stringify(msgs));
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs]);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || sending) return;
+
+    const next = [...msgs, { role: "user", content: text }];
+    setMsgs(next);
+    setInput("");
+    setSending(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+      const data = await res.json();
+      setMsgs((prev) => [...prev, { role: "assistant", content: data.reply }]);
+    } catch {
+      setMsgs((prev) => [
+        ...prev,
+        { role: "assistant", content: "Tive um problema para responder agora. Tente novamente." },
+      ]);
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  }
+
+  function reset() {
+    setMsgs([]);
+    localStorage.removeItem("amiga-history");
+    inputRef.current?.focus();
+  }
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-zinc-900 text-slate-200 flex flex-col items-center">
+      <div className="w-full max-w-2xl p-4 md:p-6">
+        {/* Header */}
+        <header className="flex items-center justify-between py-3">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+              AURI AI 
+            </span>
+          </h1>
+          <button
+            onClick={reset}
+            className="text-sm text-slate-400 hover:text-slate-200 transition"
+            title="Limpar conversa"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            limpar o chat
+          </button>
+        </header>
+
+        {/* Chat window */}
+        <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 md:p-5 h-[70vh] overflow-y-auto shadow-inner backdrop-blur">
+          {msgs.length === 0 && (
+            <div className="text-slate-400 text-sm leading-relaxed">
+              Dica: conte como foi seu dia, peça um conselho ou desabafe. AURI escuta você 💬
+            </div>
+          )}
+
+          {msgs.map((m, i) => {
+            const isUser = m.role === "user";
+            return (
+              <div
+                key={i}
+                className={`mb-3 flex ${isUser ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={[
+                    "inline-block px-4 py-2 rounded-2xl max-w-[80%] whitespace-pre-wrap shadow",
+                    isUser
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-700 text-slate-100 border border-slate-600",
+                  ].join(" ")}
+                >
+                  {m.content}
+                </div>
+              </div>
+            );
+          })}
+          <div ref={endRef} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Input row */}
+        <div className="mt-3 flex gap-2 items-end">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Escreva aqui..."
+            rows={1}
+            className="flex-1 resize-none border border-slate-700 rounded-xl px-4 py-3 bg-slate-800 text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/40"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <button
+            onClick={send}
+            disabled={sending || !input.trim()}
+            className={[
+              "px-5 py-3 rounded-xl font-medium transition shadow",
+              sending || !input.trim()
+                ? "bg-blue-900/50 text-slate-300 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white",
+            ].join(" ")}
+          >
+            {sending ? "Enviando..." : "Enviar"}
+          </button>
+        </div>
+
+        <p className="text-xs text-slate-500 mt-3">
+          Nota: AURI é uma IA. Não substitui profissionais de saúde, legais ou financeiros.
+        </p>
+      </div>
+    </main>
   );
 }
