@@ -23,3 +23,4 @@ TailwindCSS – Estilização rápida e responsiva.
 API da OpenAI – Inteligência artificial para geração de respostas.
 
 Vercel – Deploy simples e integrado.
+<img width="1304" height="850" alt="image" src="https://github.com/user-attachments/assets/c83a0906-0be4-4d66-8ae9-82dbb88000b6" />
