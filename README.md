@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🤖 AURI IA – Sua Amiga Virtual com Inteligência Artificial
 
-## Getting Started
+A AURI IA é um projeto desenvolvido em Next.js com integração à API da OpenAI, criada para ser uma experiência de bate-papo interativo com uma IA que simula uma “amiga virtual”. O objetivo é explorar processamento de linguagem natural (NLP) e aplicar conhecimentos de desenvolvimento web moderno.
 
-First, run the development server:
+✨ Funcionalidades
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+💬 Chat em tempo real com respostas da IA.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🎨 Interface simples e responsiva criada com TailwindCSS.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+💾 Histórico de conversas salvo no localStorage.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔒 Gerenciamento seguro de variáveis de ambiente para proteger a API Key.
 
-## Learn More
+🛠️ Tecnologias Utilizadas
 
-To learn more about Next.js, take a look at the following resources:
+Next.js – Framework React moderno e escalável.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+TypeScript – Tipagem estática para maior segurança no código.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+TailwindCSS – Estilização rápida e responsiva.
 
-## Deploy on Vercel
+API da OpenAI – Inteligência artificial para geração de respostas.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Vercel – Deploy simples e integrado.
